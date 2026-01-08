@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomieKhata Pro | Kunal Kumar Jha</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { 
+                        brand: '#6366f1',
+                        darkBg: '#0f172a'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card { 
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .input-dark {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: white;
+            transition: 0.3s;
+        }
+        .input-dark:focus { border-color: #6366f1; outline: none; }
+
+        /* Custom Scrollbar for History Log */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+
+        .calendar-day.has-data::after {
+            content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px;
+            background: #10b981; border-radius: 50%;
+        }
+
+        .calendar-day.active { background: #6366f1 !important; }
+        
+        .dev-badge { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen">
+
+    <aside class="w-full lg:w-80 border-r border-white/5 flex flex-col shrink-0 lg:h-screen z-10">
+        <div class="p-6 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white shadow-lg rotate-3">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tighter">RoomieKhata</h1>
+                <p class="text-[9px] text-brand font-black uppercase tracking-widest">Pro Version</p>
+            </div>
+        </div>
+
+        <div class="px-5 pb-4 space-y-5 overflow-y-auto no-scrollbar flex-1">
+            <section class="glass-card p-4">
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 text-center">Manage Crew</h3>
+                <div class="space-y-2">
+                    <input type="text" id="newName" placeholder="Name" class="input-dark w-full text-xs">
+                    <select id="newGender" class="input-dark w-full text-xs cursor-pointer">
+                        <option value="boy">Male</option>
+                        <option value="girl">Female</option>
+                    </select>
+                    <button onclick="addMember()" class="w-full bg-brand text-white py-2 rounded-lg font-bold text-xs transition-transform active:scale-95">
+                        Add Member
+                    </button>
+                </div>
+                <div id="memberTags" class="flex flex-wrap gap-1.5 mt-3"></div>
+            </section>
+
+            <section class="glass-card p-4">
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 text-center">New Transaction</h3>
+                <div class="space-y-2">
+                    <input type="text" id="desc" placeholder="Expense description..." class="input-dark w-full text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="amount" placeholder="₹ Amount" class="input-dark w-full text-xs font-bold">
+                        <select id="payer" class="input-dark w-full text-xs cursor-pointer text-slate-400"><option>Payer</option></select>
+                    </div>
+                    <div class="bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase">Split</span>
+                            <button onclick="toggleAll()" class="text-[9px] text-brand font-black uppercase">All</button>
+                        </div>
+                        <div id="splitCheckboxes" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                    <button onclick="addExpense()" class="w-full bg-white text-darkBg font-extrabold py-2.5 rounded-lg text-xs shadow-xl active:scale-95 transition-all">
+                        Record Bill
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <div class="p-5 space-y-3">
+            <div class="px-1">
+                <h2 id="clockTime" class="text-2xl font-black text-white/90 tracking-tighter">00:00</h2>
+                <p id="currentDateDisplay" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"></p>
+            </div>
+            <div class="dev-badge p-4 rounded-2xl text-white">
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 opacity-80">Head Developer</p>
+                <h4 class="font-extrabold text-sm leading-tight">Kunal Kumar Jha</h4>
+                <div class="mt-2 pt-2 border-t border-white/10 flex items-center gap-2">
+                    <i class="fa-solid fa-envelope text-white/60 text-[10px]"></i>
+                    <a href="mailto:jhakunalscse@gmail.com" class="text-[10px] font-bold truncate">jhakunalscse@gmail.com</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-4 lg:p-8 space-y-6 overflow-y-auto no-scrollbar">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass-card p-5 border-l-4 border-brand">
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Expenses</p>
+                <h2 class="text-2xl font-black">₹<span id="totalDisplay">0</span></h2>
+            </div>
+            <div class="glass-card p-5 border-l-4 border-emerald-500">
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Roomies</p>
+                <h2 class="text-2xl font-black" id="memberCount">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass-card p-6 h-[460px] flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                        History Log
+                    </h3>
+                    <button onclick="clearDateFilter()" id="resetFilterBtn" class="hidden text-[9px] font-bold bg-brand/20 text-brand px-3 py-1 rounded-full uppercase">View All</button>
+                </div>
+                <div id="historyList" class="space-y-3 flex-1 overflow-y-auto custom-scroll pr-2"></div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="glass-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest">Final Settelment</h3>
+                        <button onclick="hardReset()" class="text-[9px] font-bold text-rose-500 uppercase">Reset</button>
+                    </div>
+                    <div id="settlementList" class="space-y-2"></div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 id="calendarMonth" class="text-[10px] font-black uppercase tracking-widest text-brand">Month</h3>
+                        <div class="flex gap-3">
+                            <button onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+                            <button onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 text-center text-[9px] font-black text-slate-600 mb-2 uppercase"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let members = JSON.parse(localStorage.getItem('rk_members')) || [];
+        let expenses = JSON.parse(localStorage.getItem('rk_expenses')) || [];
+        let currentDate = new Date(); 
+        let selectedDateFilter = null;
+
+        const getAvatar = (name, gender) => `https://avatar.iran.liara.run/public/${gender || 'boy'}?username=${encodeURIComponent(name)}`;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clockTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        setInterval(updateClock, 1000);
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const title = document.getElementById('calendarMonth');
+            grid.innerHTML = "";
+            const year = currentDate.getFullYear(); const month = currentDate.getMonth();
+            title.innerText = new Date(year, month).toLocaleString('default', { month: 'short', year: 'numeric' });
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const expenseSet = new Set(expenses.map(e => e.dateKey));
+            
+            for(let i=0; i<firstDay; i++) grid.innerHTML += '<div></div>';
+            for(let i=1; i<=daysInMonth; i++) {
+                const day = document.createElement('div');
+                const key = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                day.className = `calendar-day h-7 w-7 flex items-center justify-center rounded-lg cursor-pointer font-bold text-[10px] transition ${selectedDateFilter === key ? 'active' : 'hover:bg-white/5'} ${expenseSet.has(key) ? 'has-data' : ''}`;
+                day.innerText = i;
+                day.onclick = () => { selectedDateFilter = key; document.getElementById('resetFilterBtn').classList.remove('hidden'); renderUI(); };
+                grid.appendChild(day);
+            }
+        }
+
+        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
+        function clearDateFilter() { selectedDateFilter = null; document.getElementById('resetFilterBtn').classList.add('hidden'); renderUI(); }
+
+        function addMember() {
+            const name = document.getElementById('newName').value.trim();
+            const gender = document.getElementById('newGender').value;
+            if(name && !members.find(m => m.name === name)) { members.push({ name, gender }); document.getElementById('newName').value = ""; saveAndRefresh(); }
+        }
+
+        function removeMember(name) { if(confirm(`Remove ${name}?`)) { members = members.filter(m => m.name !== name); saveAndRefresh(); } }
+
+        function addExpense() {
+            const desc = document.getElementById('desc').value.trim();
+            const amt = parseFloat(document.getElementById('amount').value);
+            const payer = document.getElementById('payer').value;
+            const involved = Array.from(document.querySelectorAll('.split-cb:checked')).map(c => c.value);
+            if(!desc || isNaN(amt) || payer === "Payer" || involved.length === 0) return;
+            const dateKey = new Date().toISOString().split('T')[0];
+            expenses.unshift({ id: Date.now(), payer, desc, amount: amt, involved, dateKey });
+            document.getElementById('desc').value = ""; document.getElementById('amount').value = ""; saveAndRefresh();
+        }
+
+        function toggleAll() {
+            const cbs = document.querySelectorAll('.split-cb');
+            const allChecked = Array.from(cbs).every(c => c.checked);
+            cbs.forEach(c => c.checked = !allChecked);
+        }
+
+        function hardReset() { if(confirm("Clear everything?")) { localStorage.clear(); location.reload(); } }
+        function saveAndRefresh() { 
+            localStorage.setItem('rk_members', JSON.stringify(members)); 
+            localStorage.setItem('rk_expenses', JSON.stringify(expenses)); 
+            renderUI(); 
+        }
+
+        function renderUI() {
+            updateClock();
+            document.getElementById('memberCount').innerText = members.length;
+            document.getElementById('totalDisplay').innerText = expenses.reduce((s,e) => s + e.amount, 0).toLocaleString();
+
+            document.getElementById('memberTags').innerHTML = members.map(m => `
+                <div class="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-[10px] font-bold">
+                    <img src="${getAvatar(m.name, m.gender)}" class="w-3.5 h-3.5 rounded-full">
+                    ${m.name}
+                    <button onclick="removeMember('${m.name}')" class="text-slate-500 hover:text-rose-500 ml-1">×</button>
+                </div>`).join('');
+
+            const payerSelect = document.getElementById('payer');
+            payerSelect.innerHTML = '<option>Payer</option>' + members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+
+            const splitBox = document.getElementById('splitCheckboxes');
+            splitBox.innerHTML = members.map(m => `
+                <label class="flex items-center gap-1.5 text-[9px] font-black bg-black/20 border border-white/5 px-2 py-1.5 rounded-lg cursor-pointer">
+                    <input type="checkbox" value="${m.name}" class="split-cb accent-brand" checked> ${m.name}
+                </label>`).join('');
+
+            const historyList = document.getElementById('historyList');
+            const filtered = selectedDateFilter ? expenses.filter(e => e.dateKey === selectedDateFilter) : expenses;
+            
+            if(filtered.length === 0) {
+                historyList.innerHTML = '<div class="flex flex-col items-center justify-center h-full opacity-20"><i class="fa-solid fa-receipt text-4xl mb-2"></i><p class="font-black uppercase tracking-widest text-[9px]">Empty History</p></div>';
+            } else {
+                historyList.innerHTML = filtered.map(e => `
+                    <li class="flex items-center justify-between p-3.5 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                        <div class="flex items-center gap-3">
+                            <img src="${getAvatar(e.payer, members.find(m => m.name === e.payer)?.gender)}" class="w-10 h-10 rounded-lg bg-slate-800">
+                            <div><h4 class="font-black text-xs text-white">${e.desc}</h4><p class="text-[8px] text-slate-500 font-bold uppercase tracking-widest">${e.payer} paid • split ${e.involved.length}</p></div>
+                        </div>
+                        <span class="text-sm font-black text-brand tracking-tighter">₹${e.amount}</span>
+                    </li>`).join('');
+            }
+            calculateSettlements(); renderCalendar();
+        }
+
+        function calculateSettlements() {
+            let balance = {}; members.forEach(m => balance[m.name] = 0);
+            expenses.forEach(e => {
+                const share = e.amount / e.involved.length;
+                if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
+                e.involved.forEach(p => { if(balance[p] !== undefined) balance[p] -= share; });
+            });
+            let debtors = [], creditors = [];
+            for(let name in balance) {
+                if(balance[name] < -0.5) debtors.push({name, amt: Math.abs(balance[name])});
+                else if(balance[name] > 0.5) creditors.push({name, amt: balance[name]});
+            }
+            let results = "";
+            let i=0, j=0;
+            while(i < debtors.length && j < creditors.length) {
+                let settleAmt = Math.min(debtors[i].amt, creditors[j].amt);
+                results += `<div class="flex items-center justify-between p-3 rounded-xl bg-brand/5 border border-brand/20 text-[10px] font-bold">
+                    <span class="text-indigo-400 uppercase tracking-tighter">${debtors[i].name} <i class="fa-solid fa-arrow-right mx-1 opacity-20"></i> ${creditors[j].name}</span>
+                    <span class="text-white">₹${settleAmt.toFixed(0)}</span>
+                </div>`;
+                debtors[i].amt -= settleAmt; creditors[j].amt -= settleAmt;
+                if(debtors[i].amt < 1) i++; if(creditors[j].amt < 1) j++;
+            }
+            document.getElementById('settlementList').innerHTML = results || '<p class="text-center py-4 text-[9px] font-bold text-slate-600 uppercase tracking-widest">Clear</p>';
+        }
+
+        updateClock(); renderUI();
+    </script>
+</body>
+</html>
